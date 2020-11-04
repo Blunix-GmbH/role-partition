@@ -1,0 +1,30 @@
+- name: install libblkid1
+  apt:
+    name: libblkid1
+    state: present
+
+- name: manage filesystems
+  filesystem:
+    fstype: ext4
+    dev: "{{ partition_disk['name'] }}"
+    opts: "{{ partition_disk['mkfs_opts'] | default('') }}"
+    resizefs: True
+  with_items: "{{ partition_disks }}"
+  loop_control:
+    loop_var: partition_disk
+
+- name: include mount tasks
+  include_tasks: mount.yml
+  with_items: "{{ partition_disks }}"
+  loop_control:
+    loop_var: partition_disk
+
+- name: manage owner, group and permissions
+  file:
+    path: "{{ partition_disk['path'] }}"
+    owner: "{{ partition_disk['owner'] | default('root') }}"
+    group: "{{ partition_disk['group'] | default('root') }}"
+    mode: "{{ partition_disk['mode'] | default('0750') }}"
+  with_items: "{{ partition_disks }}"
+  loop_control:
+    loop_var: partition_disk

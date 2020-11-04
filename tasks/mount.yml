@@ -1,0 +1,11 @@
+- name: get the UUID of the filesystem
+  command: "/sbin/blkid -s UUID -o value {{ partition_disk['name'] }}"
+  register: partition_disk_blkid_out
+
+- name: mount the filesystem
+  mount:
+    path: "{{ partition_disk['path'] }}"
+    src: "UUID={{ partition_disk_blkid_out.stdout }}"
+    fstype: ext4
+    opts: "{{ partition_disk['mount_opts'] | default('defaults') }}"
+    state: mounted
